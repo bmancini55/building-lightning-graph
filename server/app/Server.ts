@@ -1,17 +1,17 @@
 import http from "http";
 import express from "express";
-import ws from "ws";
 import compression from "compression";
 import bodyParser from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
+import { LndRestClient } from "./LndRestClient";
 
 export class Server {
     public server: http.Server;
     public app: express.Express;
     public ss: SocketServer;
 
-    constructor(readonly options: Options) {
+    constructor(readonly options: Options, readonly lnd: LndRestClient) {
         this.app = express();
     }
 

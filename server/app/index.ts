@@ -1,10 +1,11 @@
+import { LndRestClient } from "./LndRestClient";
 import { Options } from "./Options";
 import { Server } from "./Server";
 
 async function run() {
-    // additional configurations here
     const options = await Options.fromEnv();
-    const server = new Server(options);
+    const lnd = new LndRestClient(options.lndHost, options.lndReadonlyMacaroon, options.lndCert);
+    const server = new Server(options, lnd);
     await server.setup();
     await server.listen();
 }

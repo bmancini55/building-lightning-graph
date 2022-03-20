@@ -4,9 +4,9 @@ import bodyParser from "body-parser";
 import { Options } from "./Options";
 
 export class Server {
-    constructor(readonly options: Options) {}
-
     public app: express.Express;
+
+    constructor(readonly options: Options) {}
 
     public async setup() {
         this.app = express();
@@ -22,8 +22,8 @@ export class Server {
 
     public async listen(): Promise<void> {
         return new Promise(resolve => {
-            this.app.listen(Number(this.options.PORT), () => {
-                console.log(`server listening on ${this.options.PORT}`);
+            this.app.listen(Number(this.options.port), () => {
+                console.log(`server listening on ${this.options.port}`);
                 resolve();
             });
         });

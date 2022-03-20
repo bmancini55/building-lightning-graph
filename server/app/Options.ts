@@ -1,14 +1,18 @@
 import "dotenv/config";
 
-export const options = {
-    PORT: process.env.PORT,
-};
+export class Options {
+    public static env = {
+        PORT: process.env.PORT,
+    };
 
-export type Options = typeof options;
-
-for (const [key, value] of Object.entries(options)) {
-    if (!value) {
-        console.error(`Required config ${key} not found`);
-        process.exit(1);
+    public static async fromEnv(): Promise<Options> {
+        for (const [key, value] of Object.entries(Options.env)) {
+            if (!value) {
+                throw new Error(`Required option ENV.${key} is not defined`);
+            }
+        }
+        return new Options(Number(Options.env.PORT));
     }
+
+    constructor(readonly port: number) {}
 }

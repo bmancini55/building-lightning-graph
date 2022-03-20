@@ -1,7 +1,7 @@
 import http from "http";
 import express from "express";
 import compression from "compression";
-import bodyParser from "body-parser";
+import bodyParser, { json } from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
 import { LndRestClient } from "./LndRestClient";
@@ -21,6 +21,7 @@ export class Server {
         this.ss = new SocketServer();
 
         // mount routers here
+        this.app.get("/api/graph", (req, res, next) => this.getGraph(req, res).catch(next));
     }
 
     public async listen(): Promise<void> {
@@ -31,5 +32,10 @@ export class Server {
                 resolve();
             });
         });
+    }
+
+    protected async getGraph(req: express.Request, res: express.Response) {
+        const graph = await this.lnd.getGraph();
+        res.json(graph);
     }
 }

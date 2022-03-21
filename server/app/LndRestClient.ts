@@ -7,10 +7,32 @@ export class LndRestClient {
         return this.get("/v1/graph");
     }
 
+    public subscribeGraph(cb: (update: Lnd.GraphUpdate) => void) {
+        const path = "/v1/graph/subscribe";
+        return new Promise((resolve, reject) => {
+            const url = `${this.host}${path}`;
+            const options = {
+                headers: {
+                    "grpc-metadata-macaroon": this.macaroon.toString("hex"),
+                },
+                ca: this.cert,
+            };
+            const req = https.request(url, options, res => {
+                res.on("data", buf => {
+                    cb(JSON.parse(buf.toString()));
+                });
+                res.on("end", () => {
+                    resolve(null);
+                });
+            });
+            req.on("error", reject);
+            req.end();
+        });
+    }
+
     public async get<T>(path: string): Promise<T> {
         return new Promise((resolve, reject) => {
             const url = `${this.host}${path}`;
-            console.log(url);
             const options = {
                 headers: {
                     "grpc-metadata-macaroon": this.macaroon.toString("hex"),
@@ -19,18 +41,13 @@ export class LndRestClient {
             };
             const req = https.request(url, options, res => {
                 const bufs: Buffer[] = [];
-                res.on("data", buf => bufs.push(buf));
+                res.on("data", buf => {
+                    console.log(buf.toString());
+                    bufs.push(buf);
+                });
                 res.on("end", () => {
                     const result = Buffer.concat(bufs);
-                    try {
-                        if (res.statusCode === 200) {
-                            resolve(JSON.parse(result.toString("utf-8")));
-                        } else {
-                            reject(result);
-                        }
-                    } catch (ex) {
-                        reject(ex);
-                    }
+                    resolve(JSON.parse(result.toString("utf-8")));
                 });
             });
             req.on("error", reject);
@@ -87,5 +104,44 @@ export namespace Lnd {
         disabled: boolean;
         max_htlc_msat: string;
         last_update: number;
+    }
+
+    export interface GraphUpdate {
+        node_updates: NodeUpdate[];
+        channel_updates: ChannelEdgeUpdate[];
+        closed_chans: ClosedChannelUpdate[];
+    }
+
+    export interface NodeUpdate {
+        identity_key: string;
+        global_features: number;
+        alias: string;
+        color: string;
+        node_addresses: NodeAddress[];
+        features: {
+            [key: string]: Feature;
+        };
+    }
+
+    export interface ChannelEdgeUpdate {
+        chan_id: string;
+        chan_point: ChannelPoint;
+        capacity: string;
+        routing_policy: RoutingPolicy;
+        advertising_node: string;
+        connecting_node: string;
+    }
+
+    export interface ChannelPoint {
+        funding_txid_bytes: string;
+        funding_txid_str: string;
+        output_index: number;
+    }
+
+    export interface ClosedChannelUpdate {
+        chan_id: string;
+        capacity: string;
+        closed_height: number;
+        chan_point: ChannelPoint;
     }
 }

@@ -47,6 +47,7 @@ export class SocketServer {
         this.sockets.delete(ws);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onSocketMessage(data: Buffer) {
         //
     }

@@ -1,7 +1,7 @@
 import http from "http";
 import express from "express";
 import compression from "compression";
-import bodyParser, { json } from "body-parser";
+import bodyParser from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
 import { Lnd } from "./LndRestClient";

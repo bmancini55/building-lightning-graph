@@ -1,4 +1,5 @@
-import { Lnd, LndRestClient } from "./LndRestClient";
+import { LndRestClient } from "../data/LndRestClient";
+import { Lnd } from "../data/LndRestTypes";
 
 export class LndGraphService {
     constructor(readonly lnd: LndRestClient) {}

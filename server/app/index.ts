@@ -1,5 +1,5 @@
-import { LndGraphService } from "./LndGraphService";
-import { LndRestClient } from "./LndRestClient";
+import { LndGraphService } from "./lnd/domain/LndGraphService";
+import { LndRestClient } from "./lnd/data/LndRestClient";
 import { Options } from "./Options";
 import { Server } from "./Server";
 

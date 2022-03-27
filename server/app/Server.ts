@@ -4,8 +4,8 @@ import compression from "compression";
 import bodyParser from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
-import { Lnd } from "./LndRestClient";
-import { LndGraphService } from "./LndGraphService";
+import { Lnd } from "./lnd/data/LndRestTypes";
+import { LndGraphService } from "./lnd/domain/LndGraphService";
 
 export class Server {
     public server: http.Server;

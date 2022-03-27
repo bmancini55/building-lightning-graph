@@ -7,7 +7,7 @@ export class LndRestClient {
         return this.get("/v1/graph");
     }
 
-    public subscribeGraph(cb: (update: Lnd.GraphUpdate) => void) {
+    public subscribeGraph(cb: (update: Lnd.GraphUpdate) => void): Promise<void> {
         const path = "/v1/graph/subscribe";
         return new Promise((resolve, reject) => {
             const url = `${this.host}${path}`;

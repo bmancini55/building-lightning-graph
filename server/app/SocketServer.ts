@@ -30,7 +30,7 @@ export class SocketServer {
         });
     }
 
-    public broadcastJSON(obj: Object) {
+    public broadcastJSON(obj: object) {
         const json = JSON.stringify(obj);
         this.broadcast(Buffer.from(json));
     }

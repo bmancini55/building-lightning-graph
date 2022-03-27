@@ -4,14 +4,15 @@ import compression from "compression";
 import bodyParser, { json } from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
-import { LndRestClient } from "./LndRestClient";
+import { Lnd } from "./LndRestClient";
+import { LndGraphService } from "./LndGraphService";
 
 export class Server {
     public server: http.Server;
     public app: express.Express;
     public ss: SocketServer;
 
-    constructor(readonly options: Options, readonly lnd: LndRestClient) {
+    constructor(readonly options: Options, readonly lnd: LndGraphService) {
         this.app = express();
     }
 
@@ -22,6 +23,10 @@ export class Server {
 
         // mount routers here
         this.app.get("/api/graph", (req, res, next) => this.getGraph(req, res).catch(next));
+
+        this.lnd.subscribeGraph((update: Lnd.GraphUpdate) => {
+            this.ss.broadcastJSON(update);
+        });
     }
 
     public async listen(): Promise<void> {

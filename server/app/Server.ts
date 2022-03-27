@@ -4,15 +4,15 @@ import compression from "compression";
 import bodyParser from "body-parser";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
-import { Lnd } from "./lnd/data/LndRestTypes";
-import { LndGraphService } from "./lnd/domain/LndGraphService";
+import { LightningGraphUpdate } from "./domain/models/LightningGraphUpdate";
+import { IGraphService } from "./domain/IGraphService";
 
 export class Server {
     public server: http.Server;
     public app: express.Express;
     public ss: SocketServer;
 
-    constructor(readonly options: Options, readonly lnd: LndGraphService) {
+    constructor(readonly options: Options, readonly graphService: IGraphService) {
         this.app = express();
     }
 
@@ -24,7 +24,7 @@ export class Server {
         // mount routers here
         this.app.get("/api/graph", (req, res, next) => this.getGraph(req, res).catch(next));
 
-        this.lnd.subscribeGraph((update: Lnd.GraphUpdate) => {
+        this.graphService.subscribeGraph((update: LightningGraphUpdate) => {
             this.ss.broadcastJSON(update);
         });
     }
@@ -40,7 +40,7 @@ export class Server {
     }
 
     protected async getGraph(req: express.Request, res: express.Response) {
-        const graph = await this.lnd.getGraph();
+        const graph = await this.graphService.getGraph();
         res.json(graph);
     }
 }

@@ -43,7 +43,6 @@ export class LndRestClient {
             const req = https.request(url, options, res => {
                 const bufs: Buffer[] = [];
                 res.on("data", buf => {
-                    console.log(buf.toString());
                     bufs.push(buf);
                 });
                 res.on("end", () => {

@@ -11,9 +11,11 @@ export namespace Lnd {
         alias: string;
         addresses: NodeAddress[];
         color: string;
-        features: {
-            [key: string]: Feature;
-        };
+        features: FeatureMap;
+    }
+
+    export interface FeatureMap {
+        [key: string]: Feature;
     }
 
     export interface Feature {
@@ -49,9 +51,11 @@ export namespace Lnd {
     }
 
     export interface GraphUpdate {
-        node_updates: NodeUpdate[];
-        channel_updates: ChannelEdgeUpdate[];
-        closed_chans: ClosedChannelUpdate[];
+        result: {
+            node_updates: NodeUpdate[];
+            channel_updates: ChannelEdgeUpdate[];
+            closed_chans: ClosedChannelUpdate[];
+        };
     }
 
     export interface NodeUpdate {
@@ -60,9 +64,7 @@ export namespace Lnd {
         alias: string;
         color: string;
         node_addresses: NodeAddress[];
-        features: {
-            [key: string]: Feature;
-        };
+        features: FeatureMap;
     }
 
     export interface ChannelEdgeUpdate {

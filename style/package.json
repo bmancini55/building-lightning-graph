@@ -1,0 +1,17 @@
+{
+  "name": "style",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-sass -o dist/css --output-style compressed src/app.scss",
+    "watch": "node-sass -o dist/css src/app.scss && node-sass -w -o dist/css src/app.scss"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "bootstrap": "^5.1.3",
+    "node-sass": "^7.0.1"
+  }
+}

@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useApi } from "../../hooks/UseApi";
-import { LightningGraph } from "../../services/ApiService";
+import { AppGraph } from "./components/AppGraph";
 
 export const HomeScene = () => {
     const api = useApi();
-    const [graph, setGraph] = useState<LightningGraph>();
+    const graphRef = useRef<AppGraph>();
 
     useEffect(() => {
-        api.fetchGraph().then(result => {
-            setGraph(result);
+        api.fetchGraph().then(graph => {
+            console.log("got the graph");
+            graphRef.current.updateGraph(graph);
         });
     }, []);
 
     return (
-        <div className="container">
-            <h1>Welcome</h1>
+        <div className="container-fluid h-100">
+            <div className="row h-100">
+                <div className="col h-100">{<AppGraph ref={graphRef} />}</div>
+            </div>
         </div>
     );
 };

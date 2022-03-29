@@ -68,19 +68,6 @@ export class AppGraph extends React.Component {
         linkSource: (l: any) => string,
         linkTarget: (l: any) => string,
     ) {
-        const nodeFill = "currentColor"; // node stroke fill
-        const nodeStroke = "#fff"; // node stroke color
-        const nodeStrokeWidth = 1.5; // node stroke width, in pixels
-        const nodeStrokeOpacity = 1; // node stroke opacity
-        const nodeRadius = 5; // node radius, in pixels
-
-        const linkStroke = "#999"; // link stroke color
-        const linkStrokeOpacity = 0.6; // link stroke opacity
-        const linkStrokeWidth = 1.5; // given d in links, returns a stroke width in pixels
-        const linkStrokeLinecap = "round"; // link stroke linecap
-        // const linkStrength;
-        // const nodeStrength;
-
         // Compute values.
         const N = d3.map(nodes, nodeId);
         const LS = d3.map(links, linkSource);
@@ -92,11 +79,12 @@ export class AppGraph extends React.Component {
         nodes = d3.map(nodes, (_, i) => ({ id: N[i], color: C[i] }));
         links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i] }));
 
-        // Construct the forces.
-        const forceNode = d3.forceManyBody();
-        const forceLink = d3.forceLink(links).id(({ index: i }) => N[i]);
-        // if (nodeStrength !== undefined) forceNode.strength(nodeStrength);
-        // if (linkStrength !== undefined) forceLink.strength(linkStrength);
+        // Construct the simulation
+        const forceNode = d3.forceManyBody().strength(-100);
+        const forceLink = d3
+            .forceLink(links)
+            .id(({ index: i }) => N[i])
+            .distance(200);
 
         const simulation = d3
             .forceSimulation(nodes)
@@ -107,27 +95,35 @@ export class AppGraph extends React.Component {
 
         const link = svg
             .append("g")
-            .attr("stroke", typeof linkStroke !== "function" ? linkStroke : null)
-            .attr("stroke-opacity", linkStrokeOpacity)
-            .attr("stroke-width", typeof linkStrokeWidth !== "function" ? linkStrokeWidth : null)
-            .attr("stroke-linecap", linkStrokeLinecap)
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .attr("stroke-width", 1.5)
+            .attr("stroke-linecap", "round")
             .selectAll("line")
             .data(links)
             .join("line");
 
         const node = svg
             .append("g")
-            .attr("fill", nodeFill)
-            .attr("stroke", nodeStroke)
-            .attr("stroke-opacity", nodeStrokeOpacity)
-            .attr("stroke-width", nodeStrokeWidth)
-            .selectAll("circle")
+            .selectAll("g")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 1)
+            .attr("stroke-width", 1.5)
             .data(nodes)
-            .join("circle")
-            .attr("r", nodeRadius);
+            .enter()
+            .append("g")
+            .attr("fill", val => val.color);
 
-        node.attr("fill", val => val.color);
-        node.append("title").text(({ index: i }) => T[i]);
+        // add circle to node
+        node.append("circle").attr("r", 25);
+
+        // add text to node
+        node.append("text")
+            .text(d => T[d.index])
+            .attr("stroke", "#505050")
+            .attr("text-anchor", "middle")
+            .attr("x", 0)
+            .attr("y", 45);
 
         function ticked() {
             link.attr("x1", d => d.source.x)
@@ -135,7 +131,7 @@ export class AppGraph extends React.Component {
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
 
-            node.attr("cx", d => d.x).attr("cy", d => d.y);
+            node.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
         }
     }
 }

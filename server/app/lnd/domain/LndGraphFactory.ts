@@ -34,7 +34,7 @@ export class LndGraphFactory {
     }
 
     public static createNodeAddresses(input: Lnd.NodeAddress[]): LightningNodeAddress[] {
-        return input.map(address => new LightningNodeAddress(address.network, address.addr));
+        return input?.map(address => new LightningNodeAddress(address.network, address.addr)) ?? [];
     }
 
     public static createNodeFeatures(input: Lnd.FeatureMap): LightningNodeFeature[] {
@@ -66,6 +66,7 @@ export class LndGraphFactory {
     }
 
     public static createRoutingPolicy(input: Lnd.RoutingPolicy): RoutingPolicy {
+        if (!input) return;
         return new RoutingPolicy(
             input.disabled,
             input.last_update,

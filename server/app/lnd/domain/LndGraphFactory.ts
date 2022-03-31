@@ -100,6 +100,7 @@ export class LndGraphFactory {
         return new LightningChannelUpdate(
             input.chan_id,
             input.advertising_node,
+            input.connecting_node,
             this.createRoutingPolicy(input.routing_policy),
         );
     }

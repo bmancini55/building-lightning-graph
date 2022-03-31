@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from "react";
+import { useSocket } from "../../context/SocketContext";
 import { useApi } from "../../hooks/UseApi";
+import { LightningGraphUpdate } from "../../services/ApiService";
 import { AppGraph } from "./components/AppGraph";
 
 export const HomeScene = () => {
@@ -9,9 +11,14 @@ export const HomeScene = () => {
     useEffect(() => {
         api.fetchGraph().then(graph => {
             console.log("got the graph");
-            graphRef.current.updateGraph(graph);
+            graphRef.current.createGraph(graph);
         });
     }, []);
+
+    useSocket("graph", (update: LightningGraphUpdate) => {
+        console.log(update);
+        graphRef.current.updateGraph(update);
+    });
 
     return (
         <div className="container-fluid h-100">

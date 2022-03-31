@@ -30,14 +30,13 @@ export class SocketServer {
         });
     }
 
-    public broadcastJSON(obj: object) {
-        const json = JSON.stringify(obj);
-        this.broadcast(Buffer.from(json));
-    }
-
-    public broadcast(buf: Buffer) {
+    public broadcast(channel: string, data: object) {
+        const payload = {
+            channel,
+            data,
+        };
+        const buf = Buffer.from(JSON.stringify(payload));
         for (const socket of this.sockets.values()) {
-            console.log("sending", buf.toString());
             socket.send(buf);
         }
     }

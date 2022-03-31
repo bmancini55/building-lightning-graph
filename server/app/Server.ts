@@ -39,7 +39,7 @@ export class Server {
         this.app.get("/api/graph", (req, res, next) => this.getGraph(req, res).catch(next));
 
         this.graphService.subscribeGraph((update: LightningGraphUpdate) => {
-            this.ss.broadcastJSON(update);
+            this.ss.broadcast("graph", update);
         });
     }
 

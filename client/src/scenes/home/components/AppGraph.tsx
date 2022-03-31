@@ -1,6 +1,6 @@
 import React from "react";
 import * as d3 from "d3";
-import { LightningChannel, LightningGraph, LightningNode } from "../../../services/ApiService";
+import { LightningGraph, LightningGraphUpdate } from "../../../services/ApiService";
 
 /**
  * This component is simply a wrapper for D3 rendered
@@ -19,6 +19,12 @@ import { LightningChannel, LightningGraph, LightningNode } from "../../../servic
  */
 export class AppGraph extends React.Component {
     protected svgRef: SVGElement;
+    protected svg: any;
+    protected simulation: any;
+    protected nodes: any[];
+    protected links: any[];
+    protected node: any;
+    protected link: any;
 
     shouldComponentUpdate() {
         return false;
@@ -28,110 +34,155 @@ export class AppGraph extends React.Component {
         return <svg ref={elem => (this.svgRef = elem)} />;
     }
 
-    updateGraph(graph: LightningGraph) {
-        this._initializeGraph(graph);
-    }
-
-    _initializeGraph = (graph: LightningGraph) => {
+    createGraph(graph: LightningGraph) {
         const width = this.svgRef.parentElement.clientWidth;
         const height = this.svgRef.parentElement.clientHeight;
-        const svg = d3
+        this.svg = d3
             .select(this.svgRef)
             .attr("width", "100%")
             .attr("height", "100%")
             .attr("viewBox", [-width / 2, -height / 2, width, height])
             .attr("style", "background-color: #f0f0f0");
 
-        this.create(
-            graph.nodes,
-            graph.channels,
-            svg,
-            (p: any) => p.pubkey,
-            (p: any) => p.color,
-            (p: any) => p.alias ?? p.pubkey,
-            (p: any) => p.node1PubKey,
-            (p: any) => p.node2PubKey,
-        );
-    };
+        this.nodes = graph.nodes.map(node => ({
+            id: node.pubkey,
+            color: node.color,
+            title: node.alias,
+        }));
+
+        this.links = graph.channels.map(channel => ({
+            source: channel.node1PubKey,
+            target: channel.node2PubKey,
+            id: channel.channelId,
+        }));
+
+        this.initialize(width, height);
+        this.draw();
+    }
+
+    updateGraph(update: LightningGraphUpdate) {
+        for (const nodeUpdate of update.nodeUpdates) {
+            const node = this.nodes.find(p => p.id === nodeUpdate.pubkey);
+            if (node) {
+                node.title = nodeUpdate.alias;
+                node.color = nodeUpdate.color;
+            }
+        }
+
+        for (const channelUpdate of update.channelUpdates) {
+            const channel = this.links.find(p => p.id === channelUpdate.channelId);
+            if (!channel) {
+                this.links.push({
+                    source: channelUpdate.nodeId1,
+                    target: channelUpdate.nodeId2,
+                    id: channelUpdate.channelId,
+                });
+            }
+        }
+
+        for (const channelClose of update.channelCloses) {
+            const index = this.links.findIndex(p => p.id === channelClose.channelId);
+            this.links.splice(index, 1);
+        }
+
+        this.draw();
+    }
 
     /**
      * Code largely based on example:
      * https://observablehq.com/@d3/force-directed-graph
      */
-    create(
-        nodes: any,
-        links: any,
-        svg: any,
-        nodeId: (n: any) => string,
-        nodeColor: (n: any) => string,
-        nodeTitle: (n: any) => string,
-        linkSource: (l: any) => string,
-        linkTarget: (l: any) => string,
-    ) {
-        // Compute values.
-        const N = d3.map(nodes, nodeId);
-        const LS = d3.map(links, linkSource);
-        const LT = d3.map(links, linkTarget);
-        const T = d3.map(nodes, nodeTitle);
-        const C = d3.map(nodes, nodeColor);
-
-        // Replace the input nodes and links with mutable objects for the simulation.
-        nodes = d3.map(nodes, (_, i) => ({ id: N[i], color: C[i] }));
-        links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i] }));
+    initialize(width, height) {
+        const svg = this.svg;
 
         // Construct the simulation
-        const forceNode = d3.forceManyBody().strength(-100);
-        const forceLink = d3
-            .forceLink(links)
-            .id(({ index: i }) => N[i])
-            .distance(200);
-
-        const simulation = d3
-            .forceSimulation(nodes)
-            .force("link", forceLink)
-            .force("charge", forceNode)
+        this.simulation = d3
+            .forceSimulation()
+            .force(
+                "link",
+                d3.forceLink().id((node: any) => node.id),
+            )
+            .force("charge", d3.forceManyBody().strength(-100).distanceMax(1000))
             .force("center", d3.forceCenter())
-            .on("tick", ticked);
+            .force("x", d3.forceX(width / 2).strength(0.01))
+            .force("y", d3.forceY(height / 2).strength(0.01))
+            .on("tick", ticked.bind(this));
 
-        const link = svg
+        this.link = svg
             .append("g")
             .attr("stroke", "#999")
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", 1.5)
             .attr("stroke-linecap", "round")
             .selectAll("line")
-            .data(links)
+
+            .data(this.links)
             .join("line");
 
-        const node = svg
+        this.node = svg
             .append("g")
-            .selectAll("g")
             .attr("stroke", "#999")
             .attr("stroke-opacity", 1)
             .attr("stroke-width", 1.5)
-            .data(nodes)
-            .enter()
-            .append("g")
-            .attr("fill", val => val.color);
-
-        // add circle to node
-        node.append("circle").attr("r", 25);
-
-        // add text to node
-        node.append("text")
-            .text(d => T[d.index])
-            .attr("stroke", "#505050")
-            .attr("text-anchor", "middle")
-            .attr("x", 0)
-            .attr("y", 45);
+            .selectAll("g")
+            .data(this.nodes)
+            .join(enter => {
+                const result = enter.append("g").attr("fill", val => val.color);
+                result.append("circle").attr("r", 10);
+                result
+                    .append("text")
+                    .text(d => d.title)
+                    .attr("stroke", "#505050")
+                    .attr("text-anchor", "middle")
+                    .attr("x", 0)
+                    .attr("y", 35);
+                return result;
+            });
 
         function ticked() {
-            link.attr("x1", d => d.source.x)
+            this.link
+                .attr("x1", d => d.source.x)
                 .attr("y1", d => d.source.y)
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
 
-            node.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+            this.node.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
         }
+    }
+
+    draw() {
+        this.link = this.link.data(this.links).join("line");
+
+        this.node = this.node.data(this.nodes).join(
+            enter => {
+                const result = enter.append("g").attr("fill", val => val.color);
+                result
+                    .append("circle")
+                    .attr("r", 0)
+                    .call(enter => enter.transition().attr("r", 25));
+                result
+                    .append("text")
+                    .text(d => d.title)
+                    .attr("stroke", "#505050")
+                    .attr("text-anchor", "middle")
+                    .attr("x", 0)
+                    .attr("y", 45);
+                return result;
+            },
+            update => update,
+            exit => exit.remove(),
+        );
+
+        this.simulation
+            .nodes(this.nodes)
+            .force("charge", d3.forceManyBody().strength(-200))
+            .force(
+                "link",
+                d3
+                    .forceLink(this.links)
+                    .id((node: any) => node.id)
+                    .distance(200),
+            );
+        this.simulation.alpha(1).restart();
     }
 }

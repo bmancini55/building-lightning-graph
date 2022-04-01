@@ -1,4 +1,4 @@
-import { GraphUpdateCallback } from "../IGraphService";
+import { GraphUpdateCallback, IGraphService } from "../IGraphService";
 import { LightningGraph } from "../models/LightningGraph";
 import { LndRestClient } from "./LndRestClient";
 import { LightningChannel } from "../models/LightningChannel";
@@ -12,7 +12,7 @@ import { LightningNodeUpdate } from "../models/LightningNodeUpdate";
 /**
  * Provides an adapter for retrieving and subscribing to LND graph data
  */
-export class LndGraphAdapter {
+export class LndGraphService implements IGraphService {
     constructor(readonly lnd: LndRestClient) {}
 
     /**

@@ -83,8 +83,10 @@ export class AppGraph extends React.Component {
         // the simulation
         this.simulation = d3
             .forceSimulation()
-            .force("charge", d3.forceManyBody().strength(-1000).distanceMax(1000))
+            .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000))
             .force("center", d3.forceCenter())
+            .force("x", d3.forceX())
+            .force("y", d3.forceY())
             .on("tick", () => {
                 this.linkElements
                     .attr("x1", d => d.source.x)
@@ -105,6 +107,12 @@ export class AppGraph extends React.Component {
             if (node) {
                 node.title = nodeUpdate.alias;
                 node.color = nodeUpdate.color;
+            } else {
+                this.nodes.push({
+                    id: nodeUpdate.pubkey,
+                    color: nodeUpdate.color,
+                    title: nodeUpdate.alias,
+                });
             }
         }
 
@@ -172,7 +180,7 @@ export class AppGraph extends React.Component {
                 d3
                     .forceLink(this.links)
                     .id((node: any) => node.id)
-                    .distance(200),
+                    .distance(100),
             )
             .alpha(1)
             .restart();

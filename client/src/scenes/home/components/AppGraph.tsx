@@ -23,8 +23,8 @@ export class AppGraph extends React.Component {
     protected simulation: any;
     protected nodes: any[];
     protected links: any[];
-    protected node: any;
-    protected link: any;
+    protected nodeElements: any;
+    protected linkElements: any;
 
     shouldComponentUpdate() {
         return false;
@@ -35,6 +35,7 @@ export class AppGraph extends React.Component {
     }
 
     createGraph(graph: LightningGraph) {
+        // construct the initial svg container
         const width = this.svgRef.parentElement.clientWidth;
         const height = this.svgRef.parentElement.clientHeight;
         this.svg = d3
@@ -44,19 +45,57 @@ export class AppGraph extends React.Component {
             .attr("viewBox", [-width / 2, -height / 2, width, height])
             .attr("style", "background-color: #f0f0f0");
 
+        // construct container for links
+        this.svg
+            .append("g")
+            .attr("class", "links")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .attr("stroke-width", 1.5)
+            .attr("stroke-linecap", "round");
+
+        // construct container for nodes
+        this.svg
+            .append("g")
+            .attr("class", "nodes")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 1)
+            .attr("stroke-width", 1.5);
+
+        // map the graph nodes into simple objects that d3 will use
+        // during rendering
         this.nodes = graph.nodes.map(node => ({
             id: node.pubkey,
             color: node.color,
             title: node.alias,
         }));
 
+        // map the graph channels into simple objects taht d3 will use
+        // during rendering
         this.links = graph.channels.map(channel => ({
             source: channel.node1PubKey,
             target: channel.node2PubKey,
             id: channel.channelId,
         }));
 
-        this.initialize(width, height);
+        // construct the initial simulation but start it at the end since
+        // the draw method will take care of adding elements and starting
+        // the simulation
+        this.simulation = d3
+            .forceSimulation()
+            .force("charge", d3.forceManyBody().strength(-1000).distanceMax(1000))
+            .force("center", d3.forceCenter())
+            .on("tick", () => {
+                this.linkElements
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                this.nodeElements.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+            })
+            .alpha(0);
+
         this.draw();
     }
 
@@ -88,101 +127,54 @@ export class AppGraph extends React.Component {
         this.draw();
     }
 
-    /**
-     * Code largely based on example:
-     * https://observablehq.com/@d3/force-directed-graph
-     */
-    initialize(width, height) {
-        const svg = this.svg;
+    draw() {
+        // constructs the node elements
+        this.nodeElements = this.svg
+            .select(".nodes")
+            .selectAll("g")
+            .data(this.nodes)
+            .join(
+                enter => {
+                    const result = enter
+                        .append("g")
+                        .attr("class", "node")
+                        .attr("fill", val => val.color);
+                    result
+                        .append("circle")
+                        .attr("r", 0)
+                        .call(enter => enter.transition().attr("r", 10));
+                    result
+                        .append("text")
+                        .text(d => d.title)
+                        .attr("stroke", "#000000")
+                        .attr("stroke-width", 1)
+                        .attr("text-anchor", "middle")
+                        .attr("x", 0)
+                        .attr("y", 35);
+                    return result;
+                },
+                update => update,
+                exit => exit.remove(),
+            );
 
-        // Construct the simulation
-        this.simulation = d3
-            .forceSimulation()
-            .force(
-                "link",
-                d3.forceLink().id((node: any) => node.id),
-            )
-            .force("charge", d3.forceManyBody().strength(-100).distanceMax(1000))
-            .force("center", d3.forceCenter())
-            .force("x", d3.forceX(width / 2).strength(0.01))
-            .force("y", d3.forceY(height / 2).strength(0.01))
-            .on("tick", ticked.bind(this));
-
-        this.link = svg
-            .append("g")
-            .attr("stroke", "#999")
-            .attr("stroke-opacity", 0.6)
-            .attr("stroke-width", 1.5)
-            .attr("stroke-linecap", "round")
+        // constructs the link elements
+        this.linkElements = this.svg
+            .select(".links")
             .selectAll("line")
-
             .data(this.links)
             .join("line");
 
-        this.node = svg
-            .append("g")
-            .attr("stroke", "#999")
-            .attr("stroke-opacity", 1)
-            .attr("stroke-width", 1.5)
-            .selectAll("g")
-            .data(this.nodes)
-            .join(enter => {
-                const result = enter.append("g").attr("fill", val => val.color);
-                result.append("circle").attr("r", 10);
-                result
-                    .append("text")
-                    .text(d => d.title)
-                    .attr("stroke", "#505050")
-                    .attr("text-anchor", "middle")
-                    .attr("x", 0)
-                    .attr("y", 35);
-                return result;
-            });
-
-        function ticked() {
-            this.link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-
-            this.node.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
-        }
-    }
-
-    draw() {
-        this.link = this.link.data(this.links).join("line");
-
-        this.node = this.node.data(this.nodes).join(
-            enter => {
-                const result = enter.append("g").attr("fill", val => val.color);
-                result
-                    .append("circle")
-                    .attr("r", 0)
-                    .call(enter => enter.transition().attr("r", 25));
-                result
-                    .append("text")
-                    .text(d => d.title)
-                    .attr("stroke", "#505050")
-                    .attr("text-anchor", "middle")
-                    .attr("x", 0)
-                    .attr("y", 45);
-                return result;
-            },
-            update => update,
-            exit => exit.remove(),
-        );
-
+        // restarts the simulation with the latest data
         this.simulation
             .nodes(this.nodes)
-            .force("charge", d3.forceManyBody().strength(-200))
             .force(
                 "link",
                 d3
                     .forceLink(this.links)
                     .id((node: any) => node.id)
                     .distance(200),
-            );
-        this.simulation.alpha(1).restart();
+            )
+            .alpha(1)
+            .restart();
     }
 }

@@ -17,7 +17,7 @@ import { LightningGraph, LightningGraphUpdate } from "../../../services/ApiServi
  * allow us to retain "graph" state inside D3 as separate
  * objects from those stored in our React application.
  */
-export class AppGraph extends React.Component {
+export class Graph extends React.Component {
     protected svgRef: SVGElement;
     protected svg: any;
     protected simulation: any;

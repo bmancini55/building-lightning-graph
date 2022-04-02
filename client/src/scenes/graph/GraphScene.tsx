@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useApi } from "../../hooks/UseApi";
 import { LightningGraphUpdate } from "../../services/ApiService";
-import { AppGraph } from "./components/AppGraph";
+import { Graph } from "./components/Graph";
 
-export const HomeScene = () => {
+export const GraphScene = () => {
     const api = useApi();
-    const graphRef = useRef<AppGraph>();
+    const graphRef = useRef<Graph>();
 
     useEffect(() => {
         api.fetchGraph().then(graph => {
@@ -23,7 +23,7 @@ export const HomeScene = () => {
     return (
         <div className="container-fluid h-100">
             <div className="row h-100">
-                <div className="col h-100">{<AppGraph ref={graphRef} />}</div>
+                <div className="col h-100">{<Graph ref={graphRef} />}</div>
             </div>
         </div>
     );

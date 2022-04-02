@@ -10,14 +10,14 @@ export const AppNav = () => {
     return (
         <Navbar className="main-navbar" light expand="md">
             <NavbarBrand tag={Link} to="/">
-                Application
+                <img src="/public/imgs/lightning-app.png" />
             </NavbarBrand>
             <NavbarToggler onClick={toggle} />
             <Collapse navbar isOpen={open}>
                 <Nav className="ml-auto" navbar>
                     <NavItem>
                         <NavLink tag={Link} to="/">
-                            Home
+                            Graph
                         </NavLink>
                     </NavItem>
                 </Nav>

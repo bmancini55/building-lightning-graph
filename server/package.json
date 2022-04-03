@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "../node_modules/.bin/eslint .",
-    "start": "../node_modules/.bin/ts-node app"
+    "start": "../node_modules/.bin/ts-node src/Server.ts"
   },
   "keywords": [],
   "author": "",

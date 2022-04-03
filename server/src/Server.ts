@@ -25,13 +25,13 @@ async function run() {
     app.use(compression());
 
     // mount public endpoints for our app
-    app.use("/public", serveStatic(path.join(__dirname, "../../public")));
+    app.use("/public", serveStatic(path.join(__dirname, "../public")));
     app.use("/public/app", serveStatic(path.join(__dirname, "../../client/dist/app")));
     app.use("/public/css", serveStatic(path.join(__dirname, "../../style/dist/css")));
 
     // mount the root to render our default webpage which will load the react app
     app.get("/", (req, res) => {
-        res.sendFile(path.join(__dirname, "../../public/index.html"));
+        res.sendFile(path.join(__dirname, "../public/index.html"));
     });
 
     // mount routers here
@@ -45,17 +45,17 @@ async function run() {
     // start the socket server
     const socketServer = new SocketServer();
 
-    // start listening on the socket
+    // start listening for http connections
     socketServer.listen(server);
 
-    // wire up the graph service to our socket server
-    lndGraphAdapter.subscribeGraph();
-
-    // attach event handler for graph updates that sends them to the
-    // socketServer
+    // attach an event handler for graph updates and broadcast them
+    // to WebScoket using the socketServer.
     lndGraphAdapter.on("update", (update: LightningGraphUpdate) => {
         socketServer.broadcast("graph", update);
     });
+
+    // subscribe to graph updates
+    lndGraphAdapter.subscribeGraph();
 }
 
 run().catch(ex => {

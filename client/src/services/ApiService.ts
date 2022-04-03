@@ -1,12 +1,4 @@
-import { LightningGraph } from "../../../server/app/domain/models/LightningGraph";
-
-export { LightningGraph } from "../../../server/app/domain/models/LightningGraph";
-export { LightningNode } from "../../../server/app/domain/models/LightningNode";
-export { LightningChannel } from "../../../server/app/domain/models/LightningChannel";
-export { LightningGraphUpdate } from "../../../server/app/domain/models/LightningGraphUpdate";
-export { LightningNodeUpdate } from "../../../server/app/domain/models/LightningNodeUpdate";
-export { LightningChannelUpdate } from "../../../server/app/domain/models/LightningChannelUpdate";
-export { LightningChannelClose } from "../../../server/app/domain/models/LightningChannelClose";
+import { LightningGraph } from "./ApiTypes";
 
 export class ApiService {
     constructor(readonly host: string = "http://127.0.0.1:8001") {}

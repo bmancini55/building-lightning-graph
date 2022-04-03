@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useApi } from "../../hooks/UseApi";
-import { LightningGraphUpdate } from "../../services/ApiService";
+import { LightningGraphUpdate } from "../../services/ApiTypes";
 import { Graph } from "./components/Graph";
 
 export const GraphScene = () => {

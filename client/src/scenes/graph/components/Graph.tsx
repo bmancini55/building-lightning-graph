@@ -1,6 +1,18 @@
 import React from "react";
 import * as d3 from "d3";
-import { LightningGraph, LightningGraphUpdate } from "../../../services/ApiService";
+import { LightningGraph, LightningGraphUpdate } from "../../../services/ApiTypes";
+
+interface D3Node {
+    id: string;
+    color: string;
+    title: string;
+}
+
+interface D3Link {
+    id: string;
+    source: string;
+    target: string;
+}
 
 /**
  * This component is simply a wrapper for D3 rendered
@@ -21,8 +33,8 @@ export class Graph extends React.Component {
     protected svgRef: SVGElement;
     protected svg: any;
     protected simulation: any;
-    protected nodes: any[];
-    protected links: any[];
+    protected nodes: D3Node[];
+    protected links: D3Link[];
     protected nodeElements: any;
     protected linkElements: any;
 
@@ -35,6 +47,22 @@ export class Graph extends React.Component {
     }
 
     createGraph(graph: LightningGraph) {
+        // map the graph nodes into simple objects that d3 will use
+        // during rendering
+        this.nodes = graph.nodes.map(node => ({
+            id: node.pubkey,
+            color: node.color,
+            title: node.alias,
+        }));
+
+        // map the graph channels into simple objects that d3 will use
+        // during rendering
+        this.links = graph.channels.map(channel => ({
+            source: channel.node1PubKey,
+            target: channel.node2PubKey,
+            id: channel.channelId,
+        }));
+
         // construct the initial svg container
         const width = this.svgRef.parentElement.clientWidth;
         const height = this.svgRef.parentElement.clientHeight;
@@ -61,22 +89,6 @@ export class Graph extends React.Component {
             .attr("stroke", "#999")
             .attr("stroke-opacity", 1)
             .attr("stroke-width", 1.5);
-
-        // map the graph nodes into simple objects that d3 will use
-        // during rendering
-        this.nodes = graph.nodes.map(node => ({
-            id: node.pubkey,
-            color: node.color,
-            title: node.alias,
-        }));
-
-        // map the graph channels into simple objects taht d3 will use
-        // during rendering
-        this.links = graph.channels.map(channel => ({
-            source: channel.node1PubKey,
-            target: channel.node2PubKey,
-            id: channel.channelId,
-        }));
 
         // construct the initial simulation but start it at the end since
         // the draw method will take care of adding elements and starting

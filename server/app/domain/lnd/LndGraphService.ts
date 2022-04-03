@@ -1,4 +1,4 @@
-import { GraphUpdateCallback, IGraphService } from "../IGraphService";
+import { IGraphService } from "../IGraphService";
 import { LightningGraph } from "../models/LightningGraph";
 import { LndRestClient } from "./LndRestClient";
 import { LightningChannel } from "../models/LightningChannel";
@@ -8,12 +8,15 @@ import { LightningChannelClose } from "../models/LightningChannelClose";
 import { LightningChannelUpdate } from "../models/LightningChannelUpdate";
 import { LightningGraphUpdate } from "../models/LightningGraphUpdate";
 import { LightningNodeUpdate } from "../models/LightningNodeUpdate";
+import { EventEmitter } from "stream";
 
 /**
  * Provides an adapter for retrieving and subscribing to LND graph data
  */
-export class LndGraphService implements IGraphService {
-    constructor(readonly lnd: LndRestClient) {}
+export class LndGraphService extends EventEmitter implements IGraphService {
+    constructor(readonly lnd: LndRestClient) {
+        super();
+    }
 
     /**
      * Loads a graph from LND and converts it from the LND graph format
@@ -40,24 +43,22 @@ export class LndGraphService implements IGraphService {
     }
 
     /**
-     * Subscribes to graph updates by calling the callback function for
-     * every update we receive.
+     * Subscribes to LND graph updates and emits `update` events.
      * @param cb
      * @returns
      */
-    public async subscribeGraph(cb: GraphUpdateCallback): Promise<void> {
+    public async subscribeGraph(): Promise<void> {
         // subscribe to the graph update channel
         return this.lnd.subscribeGraph((lndUpdate: Lnd.GraphUpdate) => {
-            // convert the node updates into one that our application can
-            // understand
-            const nodeUpdates = lndUpdate.result.node_updates.map(
+            // convert the LND node updates into our application's Lightning Node Update
+            const nodeUpdates: LightningNodeUpdate[] = lndUpdate.result.node_updates.map(
                 (update: Lnd.NodeUpdate) =>
                     new LightningNodeUpdate(update.identity_key, update.alias, update.color),
             );
 
-            // conver the channel update into one that our application can
+            // convert the channel update into one that our application can
             // understand
-            const channelUpdates = lndUpdate.result.channel_updates.map(
+            const channelUpdates: LightningChannelUpdate[] = lndUpdate.result.channel_updates.map(
                 (update: Lnd.ChannelEdgeUpdate) =>
                     new LightningChannelUpdate(
                         update.chan_id,
@@ -68,13 +69,25 @@ export class LndGraphService implements IGraphService {
 
             // convert the channel closures into one that our application can
             // understand
-            const channelClosures = lndUpdate.result.closed_chans.map(
+            const channelClosures: LightningChannelClose[] = lndUpdate.result.closed_chans.map(
                 (update: Lnd.ClosedChannelUpdate) =>
                     new LightningChannelClose(update.chan_id, update.closed_height),
             );
 
-            const update = new LightningGraphUpdate(nodeUpdates, channelUpdates, channelClosures);
-            cb(update);
+            const update: LightningGraphUpdate = new LightningGraphUpdate(
+                nodeUpdates,
+                channelUpdates,
+                channelClosures,
+            );
+
+            this.emit("update", update);
         });
     }
+}
+
+/**
+ * Adds type checking for the emit event
+ */
+export interface LndGraphService {
+    emit(event: "update", update: LightningGraphUpdate);
 }

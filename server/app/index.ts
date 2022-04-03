@@ -45,13 +45,17 @@ async function run() {
     // start the socket server
     const socketServer = new SocketServer();
 
-    // wire up the graph service to our socket server
-    lndGraphAdapter.subscribeGraph((update: LightningGraphUpdate) => {
-        socketServer.broadcast("graph", update);
-    });
-
     // start listening on the socket
     socketServer.listen(server);
+
+    // wire up the graph service to our socket server
+    lndGraphAdapter.subscribeGraph();
+
+    // attach event handler for graph updates that sends them to the
+    // socketServer
+    lndGraphAdapter.on("update", (update: LightningGraphUpdate) => {
+        socketServer.broadcast("graph", update);
+    });
 }
 
 run().catch(ex => {

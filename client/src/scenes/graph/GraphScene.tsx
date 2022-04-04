@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useSocket } from "../../context/SocketContext";
+import { useSocket } from "../../hooks/UseSocket";
 import { useApi } from "../../hooks/UseApi";
 import { LightningGraphUpdate } from "../../services/ApiTypes";
 import { Graph } from "./components/Graph";

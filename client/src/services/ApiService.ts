@@ -1,4 +1,4 @@
-import { LightningGraph } from "./ApiTypes";
+import { Lnd } from "./ApiTypes";
 
 export class ApiService {
     constructor(readonly host: string = "http://127.0.0.1:8001") {}
@@ -8,7 +8,7 @@ export class ApiService {
         return await res.json();
     }
 
-    public fetchGraph(): Promise<LightningGraph> {
+    public fetchGraph(): Promise<Lnd.Graph> {
         return this.get("/api/graph");
     }
 }

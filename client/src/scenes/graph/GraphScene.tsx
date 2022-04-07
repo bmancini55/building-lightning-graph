@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useSocket } from "../../hooks/UseSocket";
 import { useApi } from "../../hooks/UseApi";
-import { LightningGraphUpdate } from "../../services/ApiTypes";
+import { Lnd } from "../../services/ApiTypes";
 import { Graph } from "./components/Graph";
 
 export const GraphScene = () => {
@@ -9,13 +9,13 @@ export const GraphScene = () => {
     const graphRef = useRef<Graph>();
 
     useEffect(() => {
-        api.fetchGraph().then(graph => {
+        api.fetchGraph().then((graph: Lnd.Graph) => {
             console.log("got the graph");
             graphRef.current.createGraph(graph);
         });
     }, []);
 
-    useSocket("graph", (update: LightningGraphUpdate) => {
+    useSocket("graph", (update: Lnd.GraphUpdate) => {
         console.log(update);
         graphRef.current.updateGraph(update);
     });

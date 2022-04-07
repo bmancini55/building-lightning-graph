@@ -8,9 +8,9 @@ import { LndGraphService } from "./domain/lnd/LndGraphService";
 import { LndRestClient } from "./domain/lnd/LndRestClient";
 import { Options } from "./Options";
 import { SocketServer } from "./SocketServer";
-import { LightningGraphUpdate } from "./domain/models/LightningGraphUpdate";
 import { IGraphService } from "./domain/IGraphService";
 import { graphApi } from "./api/GraphApi";
+import { Lnd } from "./domain/lnd/LndRestTypes";
 
 async function run() {
     const options = await Options.fromEnv();
@@ -49,8 +49,8 @@ async function run() {
     socketServer.listen(server);
 
     // attach an event handler for graph updates and broadcast them
-    // to WebScoket using the socketServer.
-    lndGraphAdapter.on("update", (update: LightningGraphUpdate) => {
+    // to WebSocket using the socketServer.
+    lndGraphAdapter.on("update", (update: Lnd.GraphUpdate) => {
         socketServer.broadcast("graph", update);
     });
 

@@ -1,6 +1,6 @@
 import React from "react";
 import * as d3 from "d3";
-import { LightningGraph, LightningGraphUpdate } from "../../../services/ApiTypes";
+import { Lnd } from "../../../services/ApiTypes";
 
 interface D3Node {
     id: string;
@@ -46,21 +46,21 @@ export class Graph extends React.Component {
         return <svg ref={elem => (this.svgRef = elem)} />;
     }
 
-    createGraph(graph: LightningGraph) {
+    createGraph(graph: Lnd.Graph) {
         // map the graph nodes into simple objects that d3 will use
         // during rendering
         this.nodes = graph.nodes.map(node => ({
-            id: node.pubkey,
+            id: node.pub_key,
             color: node.color,
             title: node.alias,
         }));
 
         // map the graph channels into simple objects that d3 will use
         // during rendering
-        this.links = graph.channels.map(channel => ({
-            source: channel.node1PubKey,
-            target: channel.node2PubKey,
-            id: channel.channelId,
+        this.links = graph.edges.map(channel => ({
+            source: channel.node1_pub,
+            target: channel.node2_pub,
+            id: channel.channel_id,
         }));
 
         // construct the initial svg container
@@ -113,34 +113,34 @@ export class Graph extends React.Component {
         this.draw();
     }
 
-    updateGraph(update: LightningGraphUpdate) {
-        for (const nodeUpdate of update.nodeUpdates) {
-            const node = this.nodes.find(p => p.id === nodeUpdate.pubkey);
+    updateGraph(update: Lnd.GraphUpdate) {
+        for (const nodeUpdate of update.result.node_updates) {
+            const node = this.nodes.find(p => p.id === nodeUpdate.identity_key);
             if (node) {
                 node.title = nodeUpdate.alias;
                 node.color = nodeUpdate.color;
             } else {
                 this.nodes.push({
-                    id: nodeUpdate.pubkey,
+                    id: nodeUpdate.identity_key,
                     color: nodeUpdate.color,
                     title: nodeUpdate.alias,
                 });
             }
         }
 
-        for (const channelUpdate of update.channelUpdates) {
-            const channel = this.links.find(p => p.id === channelUpdate.channelId);
+        for (const channelUpdate of update.result.channel_updates) {
+            const channel = this.links.find(p => p.id === channelUpdate.chan_id);
             if (!channel) {
                 this.links.push({
-                    source: channelUpdate.nodeId1,
-                    target: channelUpdate.nodeId2,
-                    id: channelUpdate.channelId,
+                    source: channelUpdate.advertising_node,
+                    target: channelUpdate.connecting_node,
+                    id: channelUpdate.chan_id,
                 });
             }
         }
 
-        for (const channelClose of update.channelCloses) {
-            const index = this.links.findIndex(p => p.id === channelClose.channelId);
+        for (const channelClose of update.result.closed_chans) {
+            const index = this.links.findIndex(p => p.id === channelClose.chan_id);
             this.links.splice(index, 1);
         }
 

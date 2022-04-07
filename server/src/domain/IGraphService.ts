@@ -1,8 +1,7 @@
-import { LightningGraph } from "./models/LightningGraph";
-import { LightningGraphUpdate } from "./models/LightningGraphUpdate";
+import { Lnd } from "./lnd/LndRestTypes";
 
 export interface IGraphService {
-    getGraph(): Promise<LightningGraph>;
+    getGraph(): Promise<Lnd.Graph>;
     subscribeGraph(): Promise<void>;
-    on(event: "update", handler: (update: LightningGraphUpdate) => void): void;
+    on(event: "update", handler: (update: Lnd.GraphUpdate) => void): void;
 }

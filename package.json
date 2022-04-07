@@ -3,7 +3,17 @@
   "version": "1.0.0",
   "description": "Building Lightning apps graph visualizer project",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "concurrently \"npm run install:client\" \"npm run install:server\" \"npm run install:style\"",
+    "install:client": "cd client; npm install",
+    "install:server": "cd server; npm install",
+    "install:style": "cd style; npm install",
+    "build": "concurrently \"npm run build:client\" \"npm run build:style\"",
+    "build:client": "cd client; npm run build",
+    "build:style": "cd style; npm run build",
+    "watch": "concurrently \"npm run watch:client\" \"npm run watch:server\" \"npm run watch:style\"",
+    "watch:client": "cd client; npm run watch",
+    "watch:server": "cd server; npm run watch",
+    "watch:style": "cd style; npm run watch"
   },
   "repository": {
     "type": "git",
@@ -19,7 +29,10 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
+    "concurrently": "^7.1.0",
     "eslint": "^8.12.0",
+    "npm": "^8.6.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.6.1",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"

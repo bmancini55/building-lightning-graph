@@ -1,6 +1,12 @@
 import { useContext, useEffect } from "react";
 import { SocketContext } from "../context/SocketContext";
 
+/**
+ * Listens to the websocket channel and calls the handler for each event
+ * received on the channel.
+ * @param channel name of the channel, ex: graph
+ * @param handler event handler fired when channel data is received
+ */
 export function useSocket<T>(channel: string, handler: (data: T) => void) {
     // Obtain the socket from the context
     const { socket } = useContext(SocketContext);

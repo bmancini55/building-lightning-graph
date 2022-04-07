@@ -4,7 +4,10 @@ import { Lnd } from "./LndRestTypes";
 import { EventEmitter } from "stream";
 
 /**
- * Provides an adapter for retrieving and subscribing to LND graph data
+ * Provides an adapter for retrieving and subscribing to LND graph data.
+ * This adapter isolates our application from the inner workers of
+ * connecting to LND via REST. The application understands uses and
+ * understands the IGraphService interface.
  */
 export class LndGraphService extends EventEmitter implements IGraphService {
     constructor(readonly lnd: LndRestClient) {
@@ -12,8 +15,9 @@ export class LndGraphService extends EventEmitter implements IGraphService {
     }
 
     /**
-     * Loads a graph from LND and converts it from the LND graph format
-     * into the graph format that our application understands.
+     * Loads a graph from LND and returns the type. If we were mapping
+     * the returned value into a generic Graph type, this would be the
+     * place to do it.
      * @returns
      */
     public async getGraph(): Promise<Lnd.Graph> {

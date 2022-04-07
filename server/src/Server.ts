@@ -12,12 +12,21 @@ import { IGraphService } from "./domain/IGraphService";
 import { graphApi } from "./api/GraphApi";
 import { Lnd } from "./domain/lnd/LndRestTypes";
 
+/**
+ * Entry point for our application. This is responsible for setting up
+ * the dependency graph and constructing the application. As this code
+ * gets more complicated it can be broken into various pieces so we
+ * no longer violate the single responsibility principle.
+ */
 async function run() {
+    // construct the options
     const options = await Options.fromEnv();
+
+    // construct the dependencies use by the application
     const lnd = new LndRestClient(options.lndHost, options.lndReadonlyMacaroon, options.lndCert);
     const lndGraphAdapter: IGraphService = new LndGraphService(lnd);
 
-    // construction application
+    // construction the server
     const app: express.Express = express();
 
     // mount json and compression middleware
@@ -34,7 +43,7 @@ async function run() {
         res.sendFile(path.join(__dirname, "../public/index.html"));
     });
 
-    // mount routers here
+    // mount our API routers
     app.use(graphApi(lndGraphAdapter));
 
     // start the server on the port
@@ -42,10 +51,10 @@ async function run() {
         console.log(`server listening on ${options.port}`);
     });
 
-    // start the socket server
+    // construct the socket server
     const socketServer = new SocketServer();
 
-    // start listening for http connections
+    // start listening for http connections using the http server
     socketServer.listen(server);
 
     // attach an event handler for graph updates and broadcast them

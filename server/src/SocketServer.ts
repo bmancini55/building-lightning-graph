@@ -2,6 +2,11 @@ import { IncomingMessage, Server } from "http";
 import { Duplex } from "stream";
 import { WebSocket, WebSocketServer } from "ws";
 
+/**
+ * Implements a generic socket server that maintains a `Set` of connected
+ * sockets. This class allows us to broadcast messages to all connected
+ * sockets.
+ */
 export class SocketServer {
     public wss: WebSocketServer;
     protected sockets: Set<WebSocket>;
@@ -12,6 +17,11 @@ export class SocketServer {
         this.wss = new WebSocketServer({ noServer: true });
     }
 
+    /**
+     * Listens to an HTTP server for connection upgrades. Upon successful
+     * upgrade, the websocket is added to a list of connected sockets.
+     * @param server
+     */
     public listen(server: Server) {
         this.server = server;
         server.on("upgrade", (request: IncomingMessage, socket: Duplex, head: Buffer) => {
@@ -30,6 +40,11 @@ export class SocketServer {
         });
     }
 
+    /**
+     * Broadcast a message to all connected sockets on the supplied channel.
+     * @param channel
+     * @param data
+     */
     public broadcast(channel: string, data: object) {
         const payload = {
             channel,
@@ -41,13 +56,22 @@ export class SocketServer {
         }
     }
 
+    /**
+     * Handles when a socket closes
+     * @param ws
+     */
     protected onSocketClose(ws: WebSocket) {
         console.log("removing socket");
         this.sockets.delete(ws);
     }
 
+    /**
+     * Handles when we receive a message from a socket.
+     * @param data
+     */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onSocketMessage(data: Buffer) {
-        //
+        // Our application does not currently listen to client messages,
+        // but if it did, we could parse and handle messages here.
     }
 }

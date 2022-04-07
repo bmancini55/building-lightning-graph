@@ -9,10 +9,10 @@ import { IGraphService } from "../domain/IGraphService";
  * @returns
  */
 export function graphApi(graphService: IGraphService): express.Router {
-    // construct a router object
+    // Construct a router object
     const router = express();
 
-    // adds a handler for returning the graph. By default express doe not
+    // Adds a handler for returning the graph. By default express does not
     // understand async code, but we can easily adapt Express by calling
     // a promise based handler and if it fails catching the error and
     // supplying it with `next` to allow Express to handle the error.

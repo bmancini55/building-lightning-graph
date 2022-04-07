@@ -22,9 +22,12 @@ async function run() {
     // construct the options
     const options = await Options.fromEnv();
 
-    // construct the dependencies use by the application
-    const lnd = new LndRestClient(options.lndHost, options.lndReadonlyMacaroon, options.lndCert);
-    const lndGraphAdapter: IGraphService = new LndGraphService(lnd);
+    // Exercise: using the Options defined above, construct an instance
+    // of the LndRestClient using the options.
+    const lnd: LndRestClient = undefined;
+
+    // construct an IGraphService for use by the application
+    const graphAdapter: IGraphService = new LndGraphService(lnd);
 
     // construction the server
     const app: express.Express = express();
@@ -44,7 +47,7 @@ async function run() {
     });
 
     // mount our API routers
-    app.use(graphApi(lndGraphAdapter));
+    app.use(graphApi(graphAdapter));
 
     // start the server on the port
     const server = app.listen(Number(options.port), () => {
@@ -59,12 +62,12 @@ async function run() {
 
     // attach an event handler for graph updates and broadcast them
     // to WebSocket using the socketServer.
-    lndGraphAdapter.on("update", (update: Lnd.GraphUpdate) => {
+    graphAdapter.on("update", (update: Lnd.GraphUpdate) => {
         socketServer.broadcast("graph", update);
     });
 
     // subscribe to graph updates
-    lndGraphAdapter.subscribeGraph();
+    graphAdapter.subscribeGraph();
 }
 
 run().catch(ex => {

@@ -10,12 +10,15 @@ export class Options {
      * @returns
      */
     public static async fromEnv(): Promise<Options> {
-        return new Options(
-            Number(process.env.PORT),
-            process.env.LND_HOST,
-            await fs.readFile(process.env.LND_READONLY_MACAROON_PATH),
-            await fs.readFile(process.env.LND_CERT_PATH),
-        );
+        const port = Number(process.env.PORT);
+        const host: string = process.env.LND_HOST;
+        const macaroon: Buffer = await fs.readFile(process.env.LND_READONLY_MACAROON_PATH);
+
+        // Exercise: Using fs.readFile read the file in the LND_CERT_PATH
+        // environment variable
+        const cert: Buffer = undefined;
+
+        return new Options(port, host, macaroon, cert);
     }
 
     constructor(

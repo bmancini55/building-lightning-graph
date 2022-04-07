@@ -49,19 +49,11 @@ export class Graph extends React.Component {
     createGraph(graph: Lnd.Graph) {
         // map the graph nodes into simple objects that d3 will use
         // during rendering
-        this.nodes = graph.nodes.map(node => ({
-            id: node.pub_key,
-            color: node.color,
-            title: node.alias,
-        }));
+        this.nodes = [];
 
         // map the graph channels into simple objects that d3 will use
         // during rendering
-        this.links = graph.edges.map(channel => ({
-            source: channel.node1_pub,
-            target: channel.node2_pub,
-            id: channel.channel_id,
-        }));
+        this.links = [];
 
         // construct the initial svg container
         const width = this.svgRef.parentElement.clientWidth;
@@ -114,6 +106,8 @@ export class Graph extends React.Component {
     }
 
     updateGraph(update: Lnd.GraphUpdate) {
+        // Updates existing nodes or adds new ones if they don't already
+        // exist in the graph
         for (const nodeUpdate of update.result.node_updates) {
             const node = this.nodes.find(p => p.id === nodeUpdate.identity_key);
             if (node) {
@@ -128,6 +122,10 @@ export class Graph extends React.Component {
             }
         }
 
+        // Adds new channels to the graph. Note that for the purposes of
+        // our visualization we only care that a link exists. We will end
+        // up receiving two updates, one from each node and we just add
+        // the first one.
         for (const channelUpdate of update.result.channel_updates) {
             const channel = this.links.find(p => p.id === channelUpdate.chan_id);
             if (!channel) {
@@ -139,10 +137,7 @@ export class Graph extends React.Component {
             }
         }
 
-        for (const channelClose of update.result.closed_chans) {
-            const index = this.links.findIndex(p => p.id === channelClose.chan_id);
-            this.links.splice(index, 1);
-        }
+        // Exercise: Remove closed channels from `this.links`.
 
         this.draw();
     }

@@ -140,6 +140,24 @@ export class Graph extends React.Component {
         // the first one.
         for (const channelUpdate of update.result.channel_updates) {
             const channel = this.links.find(p => p.id === channelUpdate.chan_id);
+            // add node 1 if not exists
+            if(!this.nodes.find(p => p.id === channelUpdate.advertising_node)) {
+                this.nodes.push({
+                    id: channelUpdate.advertising_node,
+                    color: "",
+                    title: "",
+                })
+            }
+
+            // add node 2 if not exists
+            if(!this.nodes.find(p => p.id === channelUpdate.connecting_node)) {
+                this.nodes.push({
+                    id: channelUpdate.connecting_node,
+                    color: "",
+                    title: "",
+                })
+            }
+
             if (!channel) {
                 this.links.push({
                     source: channelUpdate.advertising_node,

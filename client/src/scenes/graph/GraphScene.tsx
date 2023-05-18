@@ -12,8 +12,11 @@ export const GraphScene = () => {
         // Exercise: Using the api, call the fetchGraph method. Since
         // this returns a promise, we need to use the `then` method to
         // retrieve the results. With the results, call
-        // `graphRef.current.createGraph` and add a console.log
-        // statement so you see the graph.
+        // `graphRef.current.createGraph`
+        api.fetchGraph().then((graph: Lnd.Graph) => {
+            console.log(graph);
+            // Todo
+        });
     }, []);
 
     useSocket("graph", (update: Lnd.GraphUpdate) => {
